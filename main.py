@@ -1,0 +1,61 @@
+import os
+import subprocess
+import re
+import shutil
+
+# add xmp header to img
+def process_img(image_path):
+    # 构建exiftool命令
+    # use exiftool for add UsePanoramaViewer to img
+    exiftool_cmd = [
+        "exiftool",
+        "-xmp:ProjectionType=equirectangular",
+        "-xmp:CroppedAreaLeftPixels=0",
+        "-xmp:CroppedAreaTopPixels=0",
+        "-xmp:UsePanoramaViewer=true",
+        "-overwrite_original",
+        image_path
+    ]
+    # 执行exiftool命令
+    # exec exiftool command
+    complete_info = subprocess.run(exiftool_cmd)
+
+files = os.listdir(".")
+exec_path = os.getcwd()
+for file in files:
+    # 判断是否为经过PureShot后的图片,如果是,就增加全景信息.
+    # only process PureShot img 
+    result = re.match("IMG_\d{8}_\d{6}_\d+_\d+_PureShot.jpg",file)
+    if result is not None:
+        print("{}/{}".format(exec_path,file))
+        img_path = "{}/{}".format(exec_path,file)
+        process_img(img_path)
+    else:
+        # 判断是否原始的导出图片,删除原始导出图片
+        # remove orignal img 
+        result = re.match("IMG_\d{8}_\d{6}_\d+_\d+.jpg",file)
+        if result is not None:
+            # 删除无用的文件
+            os.remove("{}/{}".format(exec_path,file))   
+        # 判断是否是.jpg_original,如果是则删除
+        # remove .jpg_original file
+        result = re.match("\S+.jpg_original",file)
+        if result is not None:
+            os.remove("{}/{}".format(exec_path,file))   
+        # 判断是否是.dng,如果是则删除
+        # remove .dng file
+        result = re.match("\S+.dng",file)
+        if result is not None:
+            os.remove("{}/{}".format(exec_path,file))   
+        #  
+    # 判断是否是文件夹,如何是文件夹则深入文件夹进行处理    
+    # if the file is directory, enter dir, process img and move img back to root dir.
+    if os.path.isdir(file):
+        for d_file in os.listdir("{}/{}".format(exec_path,file)):
+            if "jpg" in d_file:
+                print("{}/{}/{}".format(exec_path,file,d_file))
+                img_path = "{}/{}/{}".format(exec_path,file,d_file)
+                process_img(img_path)
+                # 处理完成之后将该文件移动到原始目录下
+                # move the img back to root dir
+                shutil.move(img_path,"{}/{}".format(exec_path,d_file))
