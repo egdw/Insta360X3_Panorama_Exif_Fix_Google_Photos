@@ -56,7 +56,7 @@ for file in files:
     else:
         # 判断是否原始的导出图片,删除原始导出图片
         # remove orignal img 
-        result = re.match("IMG_\d{8}_\d{6}_\d+_\d+.jpg",file)
+        result = re.match("IMG_\d{8}_\d{6}_\d+_\d+\S+.jpg",file)
         if result is not None:
             # 删除无用的文件
             if filter_img_by_width_height_size("{}/{}".format(exec_path,file)):
